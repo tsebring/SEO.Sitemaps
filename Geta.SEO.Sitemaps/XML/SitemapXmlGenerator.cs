@@ -15,6 +15,7 @@ using EPiServer.Web.Routing;
 using Geta.SEO.Sitemaps.Entities;
 using Geta.SEO.Sitemaps.Repositories;
 using Geta.SEO.Sitemaps.Utils;
+using System.Reflection;
 
 namespace Geta.SEO.Sitemaps.XML
 {
@@ -43,7 +44,7 @@ namespace Geta.SEO.Sitemaps.XML
             this._urlSet = new HashSet<string>();
         }
 
-        protected abstract XElement GenerateSiteElement(IContent contentData, string url);
+        protected abstract XElement GenerateSiteElement(IContent contentData, string url, DateTime? overrideSavedDate = null); //changed for project compatibility
 
         protected abstract XElement GenerateRootElement();
 
@@ -143,6 +144,36 @@ namespace Geta.SEO.Sitemaps.XML
                     }
 
                     AddFilteredPageElement(page, sitemapXmlElements);
+
+                    //changed for project compatibility
+                    //some pages render data from external systems based on the virtual path following the actual page url
+                    //these changes allow us to generate sitemap entries for these "virtual" pages
+                    var fullPageUrl = this._urlSet.Last();
+                    var pageType = page.GetType();
+                    if (pageType.GetInterface("Komm.Models.Pages.IHasDefaultActionWithSitemap") == null) continue;
+
+                    var mi = pageType.GetMethod("GetAllVirtualChildren", BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
+                    if (mi == null) continue;
+
+                    var ret = mi.Invoke(page, null);
+                    if (ret == null) continue;
+
+                    var items = ret as Dictionary<string, DateTime?>;
+                    foreach (var item in items)
+                    {
+                        if (this._urlSet.Count >= MaxSitemapEntryCount)
+                        {
+                            this._sitemapData.ExceedsMaximumEntryCount = true;
+                            return sitemapXmlElements;
+                        }
+
+                        var virtualFullPageUrl = fullPageUrl.ToString() + item.Key + "/";
+                        XElement pageElement = this.GenerateSiteElement(page, virtualFullPageUrl, item.Value);
+
+                        sitemapXmlElements.Add(pageElement);
+                        this._urlSet.Add(virtualFullPageUrl);
+                    }
+                    //end of changes
                 }
             }
 

@@ -32,7 +32,7 @@ namespace Geta.SEO.Sitemaps.Commerce
 
         public bool IsDebugMode { get; set; }
 
-        protected override XElement GenerateSiteElement(IContent contentData, string url)
+        protected override XElement GenerateSiteElement(IContent contentData, string url, DateTime? overrideSavedDate = null) //changed for project compatibility
         {
             // ReSharper disable once SuspiciousTypeConversion.Global
             var catalogContent = (CatalogContentBase) contentData;
@@ -41,7 +41,7 @@ namespace Geta.SEO.Sitemaps.Commerce
             var element = new XElement(
                 SitemapXmlNamespace + "url",
                 new XElement(SitemapXmlNamespace + "loc", url),
-                new XElement(SitemapXmlNamespace + "lastmod", catalogContent.StartPublish.Value.ToString(DateTimeFormat)), // TODO use modified
+                new XElement(SitemapXmlNamespace + "lastmod", (overrideSavedDate ?? catalogContent.StartPublish.Value).ToString(DateTimeFormat)), // TODO use modified //changed for project compatibility
                 new XElement(SitemapXmlNamespace + "changefreq", (property != null) ? property.ChangeFreq : "weekly"),
                 new XElement(SitemapXmlNamespace + "priority", (property != null) ? property.Priority : GetPriority(url)));
 

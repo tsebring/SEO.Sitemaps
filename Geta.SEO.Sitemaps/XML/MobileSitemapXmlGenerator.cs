@@ -4,6 +4,7 @@ using EPiServer.Core;
 using EPiServer.Web;
 using EPiServer.Web.Routing;
 using Geta.SEO.Sitemaps.Repositories;
+using System;
 
 namespace Geta.SEO.Sitemaps.XML
 {
@@ -18,9 +19,9 @@ namespace Geta.SEO.Sitemaps.XML
             get { return @"http://www.google.com/schemas/sitemap-mobile/1.0"; }
         }
 
-        protected override XElement GenerateSiteElement(IContent contentData, string url)
+        protected override XElement GenerateSiteElement(IContent contentData, string url, DateTime? overrideSavedDate = null) //changed for project compatibility
         {
-            var element = base.GenerateSiteElement(contentData, url);
+            var element = base.GenerateSiteElement(contentData, url, overrideSavedDate); //changed for project compatibility
 
             // add <mobile:mobile/> to standard sitemap url element
             element.Add(new XElement(MobileNamespace + "mobile"));

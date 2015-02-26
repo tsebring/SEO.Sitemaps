@@ -25,7 +25,7 @@ namespace Geta.SEO.Sitemaps.XML
 
         public bool IsDebugMode { get; set; }
 
-        protected override XElement GenerateSiteElement(IContent contentData, string url)
+        protected override XElement GenerateSiteElement(IContent contentData, string url, DateTime? overrideSavedDate = null) //changed for project compatibility
         {
             var tempPage = (PageData) contentData;
             var property = contentData.Property[PropertySEOSitemaps.PropertyName] as PropertySEOSitemaps;
@@ -33,7 +33,7 @@ namespace Geta.SEO.Sitemaps.XML
             var element = new XElement(
                 SitemapXmlNamespace + "url",
                 new XElement(SitemapXmlNamespace + "loc", url),
-                new XElement(SitemapXmlNamespace + "lastmod", tempPage.Saved.ToString(DateTimeFormat)),
+                new XElement(SitemapXmlNamespace + "lastmod", (overrideSavedDate ?? tempPage.Saved).ToString(DateTimeFormat)), //changed for project compatibility
                 new XElement(SitemapXmlNamespace + "changefreq", (property != null) ? property.ChangeFreq : "weekly"),
                 new XElement(SitemapXmlNamespace + "priority", (property != null) ? property.Priority : GetPriority(url)));
 
